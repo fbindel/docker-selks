@@ -48,7 +48,6 @@ services:
      - NET_RAW
     volumes:
       - ./suricata/config/suricata.yaml:/etc/suricata/suricata.yaml:ro
-      - ./suricata/pcap:/pcap
       - json-data:/var/log/suricata/
       - rules-data:/etc/suricata/rules/
       - ./suricata/rules/suricata.rules:/etc/suricata/rules/suricata.rules
@@ -72,7 +71,7 @@ services:
     environment:
         <<: *proxy
     volumes:
-      - ml-data:/data/
+      #- ml-data:/data/
       - .h2o3/data:/data
 
   elasticsearch:
