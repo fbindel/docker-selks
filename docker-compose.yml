@@ -23,6 +23,7 @@ volumes:
   rules-data:   # scirius rules
   es-data:      # elasticsearch data
   pcap-storage: # store pcaps
+  ml-data:      # data for machine learning
 
 services:
   suricata:
@@ -38,8 +39,8 @@ services:
       context: ./suricata
       args:
         <<: *proxy
-        GIT_COMMIT: ${GIT_COMMIT}
-        BUILD_ID: ${BUILD_ID}
+        GIT_COMMIT: ${GIT_COMMIT:-0}
+        BUILD_ID: ${BUILD_ID:-0}
     network_mode: "host"
     cap_add:
      - NET_ADMIN
@@ -58,6 +59,21 @@ services:
     command: bash -c "suricata -c /etc/suricata/suricata.yaml -i eth0"
     # To profile a pcap, use
     #command: bash -c "suricata -c /etc/suricata/suricata.yaml -r /pcap/${PCAPNAME}.pcap"
+
+  h2o:
+    <<: *base
+    image: h2o3:1806
+    ports: [ '54321:54321', '54322:54322' ]
+    build:
+      context: ./h2o3
+      args:
+        <<: *proxy
+    command: ["java", "-Xmx1g", "-jar", "/opt/h2o.jar"]
+    environment:
+        <<: *proxy
+    volumes:
+      - ml-data:/data/
+      - .h2o3/data:/data
 
   elasticsearch:
     <<: *base
@@ -83,6 +99,7 @@ services:
     volumes:
       - ./logstash/pipeline/:/usr/share/logstash/pipeline/
       - json-data:/var/log/suricata:ro
+      - ml-data:/ml-data/:rw
     #hostname: suricata
     depends_on:
       - elasticsearch
